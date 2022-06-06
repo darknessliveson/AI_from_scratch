@@ -9,58 +9,57 @@
 
 #define MAXCHAR 100
 
-Matrix* Matrix::matrix_create(int row, int col) {
-	Matrix* m = new Matrix;
-	m->rows = row;
-	m->cols = col;
-	for (int i = 0; i < row; i++) {
-		for (int j = 0; j < col; j++) {
-			m->entries[i][j] = 0;
-		}
-	}
-	return m;
-}
-
-void Matrix::matrix_fill(Matrix *m, int n) {
-	for (int i = 0; i < m->rows; i++) {
-		for (int j = 0; j < m->cols; j++) {
-			m->entries[i][j] = n;
+Matrix::Matrix(int row, int col) {
+	rows = row;
+	cols = col;
+	entries = new double*;
+	for (int i = 0; i < rows; i++) {
+		entries[i] = new double[cols];
+		for (int j = 0; j < cols; j++) {
+			entries[i][j] = 0;
 		}
 	}
 }
 
-void Matrix::matrix_free(Matrix* m) {
-	delete m;
+void Matrix::matrix_fill(int n) {
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			entries[i][j] = n;
+		}
+	}
 }
 
-void Matrix::matrix_print(Matrix* m) {
-	printf("Rows:%d Columns: %d\n", m->rows, m->cols);
-	for (int i = 0; i < m->rows; i++) {
-		for (int j = 0; j < m->cols; j++) {
-			printf("%1.3f ", m->entries[i][j]);
+Matrix::~Matrix() {
+}
+
+void Matrix::matrix_print() {
+	printf("Rows:%d Columns: %d\n", rows, cols);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			printf("%1.3f ", entries[i][j]);
 		}
 		printf("\n");
 	}
 }
 
 Matrix* Matrix::matrix_copy(Matrix* m) {
-	Matrix* mat = matrix_create(m->rows, m->cols);
-	for (int i = 0; i < m->rows; i++) {
-		for (int j = 0; j < m->cols; j++) {
-			mat->entries[i][j] = m->entries[i][j];
+	Matrix* mat = new Matrix(rows, cols);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			mat->entries[i][j] = entries[i][j];
 		}
 	}
 	return mat;
 }
 
-void Matrix::matrix_save(Matrix* m, char* file_string) {
+void Matrix::matrix_save(char* file_string) {
 	std::ofstream file;
 	file.open(file_string, std::ios::out);
-	file << m->rows;
-	file << m->cols;
-	for (int i = 0; i < m->rows; i++) {
-		for (int j = 0; j < m->cols; j++) {
-			file << m->entries[i][j];
+	file << rows;
+	file << cols;
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			file << entries[i][j];
 		}
 	}
 	printf("Successfully saved matrix to %s", file_string);
@@ -76,7 +75,7 @@ Matrix* Matrix::matrix_load(char* file_string) {
 	file >> entry;
 	int cols = atoi(entry);
 
-	Matrix* m = matrix_create(rows, cols);
+	Matrix* m = new Matrix(rows, cols);
 	for (int i = 0; i < m->rows; i++) {
 		for (int j = 0; j < m->cols; j++) {
 			file >> entry;
@@ -88,46 +87,46 @@ Matrix* Matrix::matrix_load(char* file_string) {
 	return m;
 }
 
-void Matrix::matrix_randomize(Matrix* m, int n) {
+void Matrix::matrix_randomize(int n) {
 	double min = -1.0 / sqrt(n);
 	double max = 1.0 / sqrt(n);
-	for (int i = 0; i < m->rows; i++) {
-		for (int j = 0; j < m->cols; j++) {
-			m->entries[i][j] = uniform_distribution(min, max);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			entries[i][j] = uniform_distribution(min, max);
 		}
 	}
 }
 
-int Matrix::matrix_argmax(Matrix* m) {
+int Matrix::matrix_argmax() {
 	double max_score = 0;
 	int max_idx = 0;
-	for (int i = 0; i < m->rows; i++) {
-		if (m->entries[i][0] > max_score) {
-			max_score = m->entries[i][0];
+	for (int i = 0; i < rows; i++) {
+		if (entries[i][0] > max_score) {
+			max_score = entries[i][0];
 			max_idx = i;
 		}
 	}
 	return max_idx;
 }
 
-Matrix* Matrix::matrix_flatten(Matrix* m, int axis) {
+Matrix* Matrix::matrix_flatten(int axis) {
 	Matrix* mat;
 	if (axis == 0) {
-		mat = matrix_create(m->rows * m->cols, 1);
+		mat = new Matrix(rows * cols, 1);
 	}
 	else if (axis == 1) {
-		mat = matrix_create(1, m->rows * m->cols);
+		mat = new Matrix(1, rows * cols);
 	}
 	else {
 		printf("Argument to matrix_flatten must be 0 or 1");
 		exit(EXIT_FAILURE);
 	}
-	for (int i = 0; i < m->rows; i++) {
-		for (int j = 0; j < m->cols; j++) {
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
 			if (axis == 0)
-				mat->entries[i * m->cols + j][0] = m->entries[i][j];
+				mat->entries[i * cols + j][0] = entries[i][j];
 			else if (axis == 1) {
-				mat->entries[0][i * m->cols + j] = m->entries[i][j];
+				mat->entries[0][i * cols + j] = entries[i][j];
 			}
 		}
 	}
